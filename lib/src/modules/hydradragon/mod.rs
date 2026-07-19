@@ -29,6 +29,7 @@
 //!   * `hydradragon.observed_packages(regex)` — observed apps count
 //!   * `hydradragon.network_connections(package_re)` — network connections
 //!   * `hydradragon.removal_resistance(package_re)` — removal resistance kick count
+//!   * `hydradragon.launcher_change(package_re)` — default launcher change attempt score
 //!
 //! **Static DEX analysis** (project's own dex-parser-analyzer engine):
 //!   * `hydradragon.dex_finding(regex)` — static findings whose message matches
@@ -746,6 +747,34 @@ fn removal_resistance_r(ctx: &ScanContext, package_re: RegexId) -> i64 {
                 }
             }
             if e.is_malicious.unwrap_or(false) {
+                score = score.saturating_mul(2);
+            }
+            score
+        })
+        .sum()
+}
+
+#[module_export(name = "launcher_change")]
+fn launcher_change_r(ctx: &ScanContext, package_re: RegexId) -> i64 {
+    let local = get_local();
+    let events = match local.as_ref().and_then(|l| l.launcher_change_events.as_ref()) {
+        Some(e) => e,
+        None => return 0,
+    };
+    events
+        .iter()
+        .filter(|e| {
+            e.package_name
+                .as_ref()
+                .map(|p| ctx.regexp_matches(package_re, p.as_bytes()))
+                .unwrap_or(false)
+        })
+        .map(|e| {
+            let mut score = 1i64;
+            if e.changed.unwrap_or(false) {
+                score += 3;
+            }
+            if e.is_suspicious.unwrap_or(false) {
                 score = score.saturating_mul(2);
             }
             score

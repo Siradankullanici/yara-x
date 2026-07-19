@@ -105,6 +105,20 @@ pub(super) struct RemovalResistanceEventJson {
     pub is_malicious: Option<bool>,
 }
 
+/// An app has attempted to become or has become the default home/launcher app.
+/// Emitted by HipsMonitor when PackageManager.clearPackagePreferredActivities,
+/// addPreferredActivity, or RoleManager.ROLE_HOME is invoked.
+#[derive(serde::Deserialize, Debug, Default)]
+pub(super) struct LauncherChangeEventJson {
+    pub package_name: Option<String>,
+    /// True if the launcher was actually changed (not just an attempt).
+    pub changed: Option<bool>,
+    /// Method used: "clearPackagePreferredActivities", "addPreferredActivity",
+    /// "role_manager" (Android 10+), or "category_home_registration".
+    pub method: Option<String>,
+    pub is_suspicious: Option<bool>,
+}
+
 #[derive(serde::Deserialize, Debug, Default)]
 pub(super) struct SystemEventJson {
     pub is_rooted: Option<bool>,
@@ -156,6 +170,9 @@ pub(super) struct HydradragonJson {
     /// Uninstall/device-admin "kick" events (RemovalResistanceGuard), for
     /// `hydradragon.removal_resistance`.
     pub removal_resistance_events: Option<Vec<RemovalResistanceEventJson>>,
+    /// Launcher-change attempts (default home app hijacking), for
+    /// `hydradragon.launcher_change`.
+    pub launcher_change_events: Option<Vec<LauncherChangeEventJson>>,
     pub system: Option<SystemEventJson>,
     pub behavior_flags: Option<Vec<BehaviorFlagsJson>>,
     pub behavior_state: Option<BehaviorStateJson>,
