@@ -375,4 +375,28 @@ fn rootkit_behavior(_ctx: &ScanContext) -> i64 {
     )
 }
 
+// ── device_admin_permission ──────────────────────────────────────────────
+//
+// Standalone check for `android.permission.BIND_DEVICE_ADMIN` in the
+// manifest's permission declarations. Unlike rootkit_behavior() which
+// combines this with the hidden-launcher heuristic, this function returns
+// 1 whenever the APK merely *declares* the device-admin permission,
+// regardless of whether it also hides its icon.
+
+#[module_export(name = "device_admin_permission")]
+fn device_admin_permission(_ctx: &ScanContext) -> i64 {
+    let local = get_local();
+    let Some(local) = local.as_ref() else { return 0 };
+    let has_it = |perms: &Option<Vec<String>>| -> bool {
+        perms
+            .as_ref()
+            .map(|list| {
+                list.iter()
+                    .any(|p| p.eq_ignore_ascii_case("android.permission.BIND_DEVICE_ADMIN"))
+            })
+            .unwrap_or(false)
+    };
+    i64::from(has_it(&local.permissions) || has_it(&local.new_permissions))
+}
+
 register_module!("androguard", Androguard, main);
