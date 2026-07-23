@@ -152,13 +152,6 @@ pub(super) struct DexFindingJson {
 // ── Per-package metadata ─────────────────────────────────────────────────────
 
 #[derive(serde::Deserialize, Debug, Default)]
-pub(super) struct PackageEntropyJson {
-    pub package_name: Option<String>,
-    /// Shannon entropy of the package's APK file (0.0 – 8.0, log-256).
-    pub entropy: Option<f64>,
-}
-
-#[derive(serde::Deserialize, Debug, Default)]
 pub(super) struct PackageFlagJson {
     pub package_name: Option<String>,
     /// 1 if the flag is active (e.g. is device admin, is hidden app).
@@ -199,11 +192,6 @@ pub(super) struct HydradragonJson {
     /// in `Lpkg/Cls;->method(params)return` format. Deduplicated across the
     /// entire scan, for `hydradragon.api_call(regex)`.
     pub api_calls: Option<Vec<String>>,
-    /// Pre-computed Shannon entropy of each package's APK file (0.0 – 8.0),
-    /// for `hydradragon.file_entropy`. Computed offline in Java by FileEntropy
-    /// and passed through the HIPS JSON metadata so the HIPS scan (which has
-    /// no file bytes) can still match on high-entropy / packed payloads.
-    pub package_entropy: Option<Vec<PackageEntropyJson>>,
     /// Packages that are currently active Device Administrators at runtime,
     /// for `hydradragon.device_admin`. Populated by Java's
     /// DevicePolicyManager.getActiveAdmins() at HIPS report time.

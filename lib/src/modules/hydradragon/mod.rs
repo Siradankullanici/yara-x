@@ -31,8 +31,7 @@
 //!   * `hydradragon.removal_resistance(package_re)` — removal resistance kick count
 //!   * `hydradragon.launcher_change(package_re)` — default launcher change attempt score
 //!
-//! **Per-package HIPS metadata** (pre-computed in Java, passed via JSON):
-//!   * `hydradragon.file_entropy(package_re)` — pre-computed Shannon entropy of the APK file
+//! **Per-package HIPS metadata** (runtime checks, passed via JSON):
 //!   * `hydradragon.device_admin(package_re)` — 1 if the package is an active Device Administrator
 //!   * `hydradragon.hidden_app(package_re)` — 1 if the package has no launcher icon (hidden app)
 //!
@@ -788,21 +787,6 @@ fn launcher_change_r(ctx: &ScanContext, package_re: RegexId) -> i64 {
 }
 
 // ── Per-package metadata functions (HIPS JSON) ─────────────────────────────
-
-#[module_export(name = "file_entropy")]
-fn file_entropy_r(ctx: &ScanContext, package_re: RegexId) -> Option<f64> {
-    let local = get_local();
-    let entries = local.as_ref()?.package_entropy.as_ref()?;
-    let mut best: Option<f64> = None;
-    for e in entries {
-        let pkg = e.package_name.as_ref()?;
-        if ctx.regexp_matches(package_re, pkg.as_bytes()) {
-            let val = e.entropy?;
-            best = Some(best.map(|b| b.max(val)).unwrap_or(val));
-        }
-    }
-    best
-}
 
 #[module_export(name = "device_admin")]
 fn device_admin_r(ctx: &ScanContext, package_re: RegexId) -> i64 {
